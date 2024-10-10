@@ -13,12 +13,35 @@ use App\Models\Todo;
 
 class TodoController extends Controller
 {
+
+    // Get all todos
+    public function all()
+    {
+        // Eager load statuses and group todos by status
+        $todos = Todo::with('status')->get()->groupBy(function ($todo) {
+            return $todo->status->name; // Group by the status name
+        });
+
+        // Format the response to include count per group
+        $formattedResponse = $todos->map(function ($group, $status) {
+            return [
+                'id' => $group[0]->todo_status_id,
+                'status' => $status,
+                'count' => $group->count(), // Count of todos in this status
+                'todos' => $group // List of todos in this status
+            ];
+        });
+
+        return response()->json($formattedResponse, 200);
+    }
+
     // Get all todos for the authenticated user
     public function index()
     {
         $todos = Todo::where('user_id', Auth::id())
-            ->with(['status', 'user'])
+            ->with(['status:id,name', 'user:id,name,username'])
             ->get();
+
         return response()->json($todos, 200);
     }
 
@@ -38,6 +61,9 @@ class TodoController extends Controller
             'todo' => $request->todo,
             'description' => $request->description,
         ]);
+
+        // Eager load
+        $todo->load('status:id,name');
 
         return response()->json($todo, 201);
     }
@@ -60,6 +86,9 @@ class TodoController extends Controller
 
         $todo = Todo::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
         $todo->update($request->only(['todo_status_id', 'todo', 'description']));
+
+        // Eager load
+        $todo->load('status:id,name');
 
         return response()->json($todo);
     }

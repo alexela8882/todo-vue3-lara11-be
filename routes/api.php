@@ -28,6 +28,9 @@ Route::post('/tokens/create', function (Request $request) {
 // TODOS
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('todos', TodoController::class);
+
+    // Add the custom routes (use dash to avoid route conflicts)
+    Route::get('todos-all', [TodoController::class, 'all'])->name('todos.all');
 });
 
 // TODO STATUSES

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 // Models
 use App\Models\User;
+use App\Models\UserDetail;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Hash;
 
@@ -37,6 +38,14 @@ class UserController extends Controller
         // Eager load the related user type
         $user->load('type:id,name');
 
+        // store user details
+        $userDetail = new UserDetail;
+        $userDetail->user_id = $user->id;
+        $userDetail->first_name = '';
+        $userDetail->last_name = '';
+        $userDetail->email = '';
+        $userDetail->save();
+
         return response()->json($user, 201);
     }
 
@@ -50,7 +59,11 @@ class UserController extends Controller
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->all());
+        $user->name = $request->name;
+        $user->username = $request->username;
+        $user->user_type_id = $request->user_type_id;
+        $user->password = bcrypt($request->password);
+        $user->update();
 
         // Eager load the related user type
         $user->load('type:id,name');

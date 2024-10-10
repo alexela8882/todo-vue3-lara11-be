@@ -12,7 +12,7 @@ class UserDetailController extends Controller
 {
     public function index()
     {
-        $userDetails = UserDetail::with('user')->get(); // Fetch user details with related user
+        $userDetails = UserDetail::with('user:id,username,name')->get(); // Fetch user details with related user
         return response()->json($userDetails);
     }
 
@@ -46,6 +46,10 @@ class UserDetailController extends Controller
 
         $userDetail = UserDetail::findOrFail($id);
         $userDetail->update($request->all());
+
+        // Eager load
+        $userDetail->load('user:id,username,name');
+
         return response()->json($userDetail, 200);
     }
 
